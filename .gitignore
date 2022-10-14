@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+
+# Ignore package-lock.json and yarn.lock . Please use yarn.
+package-lock.json
+lerna-debug.log
+.DS_Store
+.idea
+yarn-error.log
+.tsbuildfile
+latest-run
+
+# Turborepo Files
+.turbo

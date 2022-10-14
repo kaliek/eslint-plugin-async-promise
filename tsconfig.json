@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": ["es2020", "dom"],
+    "target": "es6",
+    "module": "CommonJS",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "importHelpers": true,
+    "noEmitHelpers": true,
+    "stripInternal": true,
+    "outDir": "dist",
+    "types": ["node"]
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules"]
+}
