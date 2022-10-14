@@ -1,9 +1,9 @@
 import asyncNoAwaitRule from './rules/async-no-await';
 
-module.exports = {
+const configuration = {
   rules: {
-    'async-no-await': {
-      create: asyncNoAwaitRule,
-    },
+    'async-no-await': asyncNoAwaitRule
   },
 };
+
+export = configuration;

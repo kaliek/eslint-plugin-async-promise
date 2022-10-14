@@ -10,6 +10,7 @@ lerna-debug.log
 yarn-error.log
 .tsbuildfile
 latest-run
+.npmrc
 
 # Turborepo Files
 .turbo
