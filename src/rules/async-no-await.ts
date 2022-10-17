@@ -25,7 +25,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     },
     messages: {
       noAwaitBeforeReturnPromise:
-        "Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`",
+        "Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`, so they would run synchronously with the returning Promise",
     },
     schema: [],
   },
