@@ -14,7 +14,10 @@
   "keywords": [
     "eslint",
     "eslintplugin",
-    "eslint-plugin"
+    "eslint-plugin",
+    "promise",
+    "async",
+    "await"
   ],
   "author": "Yujiao Mo",
   "license": "MIT",
