@@ -1,46 +1,48 @@
-import { ESLintUtils } from '@typescript-eslint/utils';
-import rule from '../rules/async-no-await';
+import { ESLintUtils } from "@typescript-eslint/utils";
+import rule from "../rules/async-no-await";
 const ruleTester = new ESLintUtils.RuleTester({
-  parser: '@typescript-eslint/parser',
+  parser: "@typescript-eslint/parser",
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: './tsconfig.json',
+    project: "./tsconfig.json",
   },
 });
-ruleTester.run('async-no-await', rule, {
+ruleTester.run("async-no-await", rule, {
   valid: [
-    {
-      code: `async function a() {
+    `function a() {
         return Promise.resolve();
       };
-      async function b() {
-        a().then(() => {});
-        await a();
+    async function b() {
+      await a();
+      return Promise.resolve();
+    };`,
+    `function a() {
         return Promise.resolve();
-      };`,
-    },
+      };
+    async function b() {
+      a();
+      return "Not returning a Promise";
+    };`,
+    `function a() {
+      return Promise.resolve();
+    };
+    function b() {
+      a();
+      return Promise.resolve();
+    };`,
   ],
   invalid: [
     {
-      code: `async function a() {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            resolve("a");
-          }, 1000);
-        });
+      code: `
+      function a() {
+        return Promise.resolve();
       };
       async function b() {
         a();
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            resolve("b");
-          }, 300);
-        });
-      };`,
-      errors: [
-        { messageId: 'noAwaitBeforeReturnPromise' },
-        { messageId: 'asyncCallNoAwait' },
-      ],
+        return Promise.resolve();
+      };
+      `,
+      errors: [{ messageId: "noAwaitBeforeReturnPromise" }],
     },
   ],
 });

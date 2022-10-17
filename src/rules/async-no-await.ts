@@ -25,9 +25,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     },
     messages: {
       noAwaitBeforeReturnPromise:
-        'Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`',
-      asyncCallNoAwait:
-        'This async function is not `await`ed, it will be executed synchoronously with the returning Promise',
+        'Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`'
     },
     schema: [],
   },
@@ -109,11 +107,6 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       scopeInfo.noAwaitCalls.push(
         `${callee.name}(line: ${callee.loc.start.line})`
       );
-      context.report({
-        node,
-        loc: callee.loc,
-        messageId: 'asyncCallNoAwait',
-      });
     }
 
     return {

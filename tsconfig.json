@@ -12,8 +12,9 @@
     "noEmitHelpers": true,
     "stripInternal": true,
     "outDir": "dist",
-    "types": ["node"]
+    "types": ["node"],
+    "skipLibCheck": true
   },
-  "include": ["./src"],
+  "include": ["./src/**/*.ts"],
   "exclude": ["node_modules"]
 }
