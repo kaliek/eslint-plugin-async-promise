@@ -10,7 +10,7 @@ A typescript-eslint plugin to catch Promise related errors
 
 ## Installation
 
-First, install the required packages for [ESLint](https://eslint.org), [TypeScript](https://typescriptlang.org), and this plugin:
+First, install the required packages for [ESLint](https://eslint.org), [TypeScript](https://typescriptlang.org), [TypeScript ESLint](https://typescript-eslint.io/) and the [TypeScript ESLint Parser](https://github.com/typescript-eslint/typescript-eslint/tree/main/packages/parser)
 
 ```bash npm2yarn
 npm install @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint typescript --save-dev
