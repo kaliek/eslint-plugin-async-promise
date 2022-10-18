@@ -5,8 +5,8 @@ A typescript-eslint plugin to catch Promise related errors
 - [Installation](#installation)
 - [Usage](#usage)
 - [Rules](#rules)
-- [Rules/async-no-await](#async-no-await)
-- [Rules/unnecessary-async](#unnecessary-async)
+  - [Rules/async-no-await](#async-no-await)
+  - [Rules/unnecessary-async](#unnecessary-async)
 
 
 
@@ -45,7 +45,8 @@ Then configure the rules you want to use under the rules section.
 ```json
 {
   "rules": {
-    "promise/async-no-await": "error"
+    "async-promise/async-no-await": "error",
+    "async-promise/unnecessary-async": "warn", 
   }
 }
 ```
