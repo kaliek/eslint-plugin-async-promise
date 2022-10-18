@@ -47,7 +47,7 @@ Then configure the rules you want to use under the rules section.
 ```
 
 ## Rules
-Disallow synchonous async function calls inside an async function that returns Promise
+Disallow concurrent async function calls inside an async function that returns Promise.
 
 While we do not always need to `await` Promise (such as firing side-effects that do not block other calls), it is often a programmer error to forget adding `await` for these async calls before returning Promise inside an async function.
 

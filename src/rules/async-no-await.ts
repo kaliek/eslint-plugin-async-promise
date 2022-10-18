@@ -1,7 +1,7 @@
-import { ESLintUtils, TSESTree } from "@typescript-eslint/utils";
-import * as tsutils from "tsutils";
-import type * as ts from "typescript";
-import * as utils from "../utils";
+import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import * as tsutils from 'tsutils';
+import type * as ts from 'typescript';
+import * as utils from '../utils';
 
 interface ScopeInfo {
   upper: ScopeInfo | null;
@@ -16,16 +16,16 @@ type FunctionNode =
 
 const rule = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
       description:
-        "Check missing await for async calls inside async functions which return Promise",
-      recommended: "error",
+        'Check missing await for async calls inside async functions which return Promise',
+      recommended: 'error',
       requiresTypeChecking: true,
     },
     messages: {
       noAwaitBeforeReturnPromise:
-        "Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`, so they would run synchronously with the returning Promise",
+        'Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`, so they would run concurrently with the returning Promise. Please add `await` for them, or disable the rule if needed.',
     },
     schema: [],
   },
@@ -67,7 +67,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         context.report({
           node,
           loc: utils.getFunctionHeadLoc(node, sourceCode),
-          messageId: "noAwaitBeforeReturnPromise",
+          messageId: 'noAwaitBeforeReturnPromise',
           data: {
             noAwaitCalls: scopeInfo.noAwaitCalls,
           },
@@ -113,13 +113,13 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       FunctionDeclaration: enterFunction,
       FunctionExpression: enterFunction,
       ArrowFunctionExpression: enterFunction,
-      "FunctionDeclaration:exit": exitFunction,
-      "FunctionExpression:exit": exitFunction,
-      "ArrowFunctionExpression:exit": exitFunction,
+      'FunctionDeclaration:exit': exitFunction,
+      'FunctionExpression:exit': exitFunction,
+      'ArrowFunctionExpression:exit': exitFunction,
 
       // check body-less async arrow function.
       // ignore `async () => await foo` because it's obviously correct
-      "ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)"(
+      'ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)'(
         node: Exclude<
           TSESTree.Node,
           TSESTree.BlockStatement | TSESTree.AwaitExpression
@@ -149,16 +149,16 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
 
         const { expression } = parserServices.esTreeNodeToTSNodeMap.get(node);
         if (expression && isThenableType(expression)) {
-          if (node.expression.type === "CallExpression") {
+          if (node.expression.type === 'CallExpression') {
             const callee = node.expression.callee;
-            if (callee.type === "Identifier") {
+            if (callee.type === 'Identifier') {
               addNoAwaitCalls(node.expression);
             }
             if (
-              callee.type === "MemberExpression" &&
-              callee.property.type === "Identifier"
+              callee.type === 'MemberExpression' &&
+              callee.property.type === 'Identifier'
             ) {
-              if (callee.object.type === "CallExpression") {
+              if (callee.object.type === 'CallExpression') {
                 addNoAwaitCalls(callee.object);
               }
             }
