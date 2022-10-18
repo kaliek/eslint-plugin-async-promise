@@ -5,6 +5,10 @@ A typescript-eslint plugin to catch Promise related errors
 - [Installation](#installation)
 - [Usage](#usage)
 - [Rules](#rules)
+- [Rules/async-no-await](#async-no-await)
+- [Rules/unnecessary-async](#unnecessary-async)
+
+
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -47,15 +51,18 @@ Then configure the rules you want to use under the rules section.
 ```
 
 ## Rules
+
+### async-no-await
+
 Disallow concurrent async function calls inside an async function.
 
 While we do not always need to `await` Promise (such as firing side-effects that do not block other calls), it is often a programmer error to forget adding `await` for these async callsinside an async function.
 
-### Examples
+#### Examples
 
 <!--tabs-->
 
-### ❌ Incorrect
+#### ❌ Incorrect
 
 ```ts
 function a() {
@@ -70,12 +77,12 @@ async function b() {
 function a() {
   return Promise.resolve();
 }
-async function b() { // Maybe b() does not need to be `async`?
+async function b() {
   a(); // a() should have been awaited since the return type is still Promise implicitly
   return "Not returning a Promise";
 }
 ```
-### ✅ Correct
+#### ✅ Correct
 
 ```ts
 function a() {
@@ -94,6 +101,48 @@ function a() {
 function b() {
     a(); // This is ok because the function is not marked as async, this can just be a side-effect
     return Promise.resolve();
+};,
+```
+
+### unnecessary-async
+
+Enforce that `async` keyword is only added when:
+1. The function explicitly returns Promise
+2. There is at least 1 `await` statement in the function
+
+#### Examples
+
+<!--tabs-->
+
+#### ❌ Incorrect
+
+```ts
+function a() {
+  return Promise.resolve();
+}
+async function b() {
+  a();
+}
+```
+```ts
+async function b() {
+  return "Not returning a Promise explicitly";
+}
+```
+#### ✅ Correct
+
+```ts
+async function b() {
+  return Promise.resolve();
+}
+```
+
+```ts
+function a() {
+    return Promise.resolve();
+};
+async function b() {
+  await a();
 };,
 ```
 
