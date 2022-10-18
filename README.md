@@ -70,7 +70,7 @@ async function b() {
 function a() {
   return Promise.resolve();
 }
-async function b() { // Maybe b does not need to be `async`?
+async function b() { // Maybe b() does not need to be `async`?
   a(); // a() should have been awaited since the return type is still Promise implicitly
   return "Not returning a Promise";
 }
