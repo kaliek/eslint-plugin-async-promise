@@ -9,9 +9,7 @@ const ruleTester = new ESLintUtils.RuleTester({
 });
 ruleTester.run("unnecessary-async", rule, {
   valid: [
-    `function a() {
-        return Promise.resolve();
-      };
+    `
     async function b() {
       return Promise.resolve();
     };`,
@@ -25,9 +23,6 @@ ruleTester.run("unnecessary-async", rule, {
   invalid: [
     {
       code: `
-      function a() {
-        return Promise.resolve();
-      };
       async function b() {
         return 'Not returning a Promise explicitly';
       };
