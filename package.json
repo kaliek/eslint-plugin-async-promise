@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-async-promise",
-  "version": "4.0.0",
+  "version": "4.1.1",
   "description": "A typescript-eslint plugin for Promise related rules",
   "main": "dist/index.js",
   "scripts": {

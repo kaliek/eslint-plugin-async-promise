@@ -19,6 +19,12 @@ ruleTester.run("unnecessary-async", rule, {
     async function b() {
       await a();
     };`,
+    `function a() {
+        return Promise.resolve();
+      };
+      async function b() {
+        return a();
+      };`,
   ],
   invalid: [
     {

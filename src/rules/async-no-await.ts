@@ -115,7 +115,8 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         if (
           tsnode &&
           isThenableType(tsnode) &&
-          node.parent?.type !== "AwaitExpression"
+          node.parent?.type !== "AwaitExpression" &&
+          node.parent?.type !== "ReturnStatement"
         ) {
           const callee = node.callee;
           if (callee.type === "Identifier") {

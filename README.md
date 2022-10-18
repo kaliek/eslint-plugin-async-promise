@@ -64,7 +64,6 @@ While we do not always need to `await` Promise (such as firing side-effects that
 <!--tabs-->
 
 #### ❌ Incorrect
-
 ```ts
 function a() {
   return Promise.resolve();
@@ -84,7 +83,6 @@ async function b() {
 }
 ```
 #### ✅ Correct
-
 ```ts
 function a() {
   return Promise.resolve();
@@ -94,7 +92,6 @@ async function b() {
   return Promise.resolve();
 }
 ```
-
 ```ts
 function a() {
     return Promise.resolve();
@@ -116,7 +113,6 @@ Enforce that `async` keyword is only added when:
 <!--tabs-->
 
 #### ❌ Incorrect
-
 ```ts
 function a() {
   return Promise.resolve();
@@ -131,19 +127,25 @@ async function b() {
 }
 ```
 #### ✅ Correct
-
 ```ts
 async function b() {
   return Promise.resolve();
 }
 ```
-
 ```ts
 function a() {
     return Promise.resolve();
 };
 async function b() {
   await a();
+};,
+```
+```ts
+function a() {
+    return Promise.resolve();
+};
+async function b() {
+  return a();
 };,
 ```
 
