@@ -17,13 +17,6 @@ ruleTester.run("async-no-await", rule, {
       return Promise.resolve();
     };`,
     `function a() {
-        return Promise.resolve();
-      };
-    async function b() {
-      a();
-      return "Not returning a Promise";
-    };`,
-    `function a() {
       return Promise.resolve();
     };
     function b() {
@@ -42,6 +35,31 @@ ruleTester.run("async-no-await", rule, {
         return Promise.resolve();
       };
       `,
+      errors: [{ messageId: "noAwaitBeforeReturnPromise" }],
+    },
+    {
+      code: `
+      function a() {
+        return Promise.resolve();
+      };
+      async function b() {
+        a();
+        return 'Not returning a Promise';
+      };`,
+      errors: [
+        { messageId: "unnecessaryAsync" },
+        { messageId: "noAwaitBeforeReturnPromise" },
+      ],
+    },
+    {
+      code: `
+      function c() {
+        return Promise.resolve();
+      };
+      async function d() {
+        const result = c();
+        return result;
+      };`,
       errors: [{ messageId: "noAwaitBeforeReturnPromise" }],
     },
     {

@@ -1,7 +1,7 @@
-import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
-import * as tsutils from 'tsutils';
-import type * as ts from 'typescript';
-import * as utils from '../utils';
+import { ESLintUtils, TSESTree } from "@typescript-eslint/utils";
+import * as tsutils from "tsutils";
+import type * as ts from "typescript";
+import * as utils from "../utils";
 
 interface ScopeInfo {
   upper: ScopeInfo | null;
@@ -16,16 +16,17 @@ type FunctionNode =
 
 const rule = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description:
-        'Check missing await for async calls inside async functions which return Promise',
-      recommended: 'error',
+      description: "Check missing await for async calls inside async functions",
+      recommended: "error",
       requiresTypeChecking: true,
     },
     messages: {
       noAwaitBeforeReturnPromise:
-        'Inside this async function which returns Promise, these async functions: [{{noAwaitCalls}}] do not have `await`, so they would run concurrently with the returning Promise. Please add `await` for them, or disable the rule if needed.',
+        "Inside this async function, these async functions: [{{noAwaitCalls}}] do not have `await`, so they would run concurrently with the returning Promise. Please add `await` for them, or disable the rule if needed.",
+      unnecessaryAsync:
+        "This function is not explicitly returning Promise, do you want to remove `async` keyword?",
     },
     schema: [],
   },
@@ -58,20 +59,24 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         return;
       }
 
-      // console.log({name: node.id?.name, scopeInfo, upper: scopeInfo.upper});
-      if (
-        node.async &&
-        scopeInfo.returnsPromise &&
-        scopeInfo.noAwaitCalls.length > 0
-      ) {
-        context.report({
-          node,
-          loc: utils.getFunctionHeadLoc(node, sourceCode),
-          messageId: 'noAwaitBeforeReturnPromise',
-          data: {
-            noAwaitCalls: scopeInfo.noAwaitCalls,
-          },
-        });
+      if (node.async) {
+        if (!scopeInfo.returnsPromise) {
+          context.report({
+            node,
+            loc: utils.getFunctionHeadLoc(node, sourceCode),
+            messageId: "unnecessaryAsync",
+          });
+        }
+        if (scopeInfo.noAwaitCalls.length > 0) {
+          context.report({
+            node,
+            loc: utils.getFunctionHeadLoc(node, sourceCode),
+            messageId: "noAwaitBeforeReturnPromise",
+            data: {
+              noAwaitCalls: scopeInfo.noAwaitCalls,
+            },
+          });
+        }
       }
 
       scopeInfo = scopeInfo.upper;
@@ -87,9 +92,9 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     }
 
     /**
-     * Marks the current scope as having an await
+     * Marks the current scope as returns Promise explicitly
      */
-    function markAsReturnsPromise(): void {
+    function markAsReturnsPromiseExplicitly(): void {
       if (!scopeInfo) {
         return;
       }
@@ -97,7 +102,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     }
 
     /**
-     * Marks the current scope as having an await
+     * Add name and line number string to the list that keeps all problematic calls
      */
     function addNoAwaitCalls(node: TSESTree.CallExpression): void {
       if (!scopeInfo) {
@@ -113,13 +118,13 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       FunctionDeclaration: enterFunction,
       FunctionExpression: enterFunction,
       ArrowFunctionExpression: enterFunction,
-      'FunctionDeclaration:exit': exitFunction,
-      'FunctionExpression:exit': exitFunction,
-      'ArrowFunctionExpression:exit': exitFunction,
+      "FunctionDeclaration:exit": exitFunction,
+      "FunctionExpression:exit": exitFunction,
+      "ArrowFunctionExpression:exit": exitFunction,
 
       // check body-less async arrow function.
       // ignore `async () => await foo` because it's obviously correct
-      'ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)'(
+      "ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)"(
         node: Exclude<
           TSESTree.Node,
           TSESTree.BlockStatement | TSESTree.AwaitExpression
@@ -127,7 +132,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       ): void {
         const expression = parserServices.esTreeNodeToTSNodeMap.get(node);
         if (expression && isThenableType(expression)) {
-          markAsReturnsPromise();
+          markAsReturnsPromiseExplicitly();
         }
       },
       ReturnStatement(node): void {
@@ -138,31 +143,21 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
 
         const { expression } = parserServices.esTreeNodeToTSNodeMap.get(node);
         if (expression && isThenableType(expression)) {
-          markAsReturnsPromise();
+          markAsReturnsPromiseExplicitly();
         }
       },
-      ExpressionStatement(node): void {
+      CallExpression(node): void {
         // short circuit early to avoid unnecessary type checks
         if (!scopeInfo || !scopeInfo.hasAsync) {
           return;
         }
 
-        const { expression } = parserServices.esTreeNodeToTSNodeMap.get(node);
-        if (expression && isThenableType(expression)) {
-          if (node.expression.type === 'CallExpression') {
-            const callee = node.expression.callee;
-            if (callee.type === 'Identifier') {
-              addNoAwaitCalls(node.expression);
+        const tsnode = parserServices.esTreeNodeToTSNodeMap.get(node);
+        if (tsnode && isThenableType(tsnode) && node.parent?.type !== 'AwaitExpression') {
+            const callee = node.callee;
+            if (callee.type === "Identifier") {
+              addNoAwaitCalls(node);
             }
-            if (
-              callee.type === 'MemberExpression' &&
-              callee.property.type === 'Identifier'
-            ) {
-              if (callee.object.type === 'CallExpression') {
-                addNoAwaitCalls(callee.object);
-              }
-            }
-          }
         }
       },
     };

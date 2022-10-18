@@ -47,9 +47,9 @@ Then configure the rules you want to use under the rules section.
 ```
 
 ## Rules
-Disallow concurrent async function calls inside an async function that returns Promise.
+Disallow concurrent async function calls inside an async function.
 
-While we do not always need to `await` Promise (such as firing side-effects that do not block other calls), it is often a programmer error to forget adding `await` for these async calls before returning Promise inside an async function.
+While we do not always need to `await` Promise (such as firing side-effects that do not block other calls), it is often a programmer error to forget adding `await` for these async callsinside an async function.
 
 ### Examples
 
@@ -66,7 +66,15 @@ async function b() {
   return Promise.resolve();
 }
 ```
-
+```ts
+function a() {
+  return Promise.resolve();
+}
+async function b() { // Maybe b does not need to be `async`?
+  a(); // a() should have been awaited since the return type is still Promise implicitly
+  return "Not returning a Promise";
+}
+```
 ### ✅ Correct
 
 ```ts
@@ -89,12 +97,3 @@ function b() {
 };,
 ```
 
-```ts
-function a() {
-  return Promise.resolve();
-}
-async function b() {
-  a(); // This is fine (but we can remove the `async` declaration for b())
-  return "Not returning a Promise";
-}
-```
