@@ -6,7 +6,6 @@ import * as utils from "../utils";
 interface ScopeInfo {
   upper: ScopeInfo | null;
   hasAsync: boolean;
-  returnsPromise: boolean;
   noAwaitCalls: string[];
 }
 type FunctionNode =
@@ -24,9 +23,9 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     },
     messages: {
       noAwaitBeforeReturnPromise:
-        "Inside this async function, these async functions: [{{noAwaitCalls}}] do not have `await`, so they would run concurrently with the returning Promise. Please add `await` for them, or disable the rule if needed.",
-      unnecessaryAsync:
-        "This function is not explicitly returning Promise, do you want to remove `async` keyword?",
+        "Inside this async function, these async functions: [{{noAwaitCalls}}] do not have `await`.",
+      asyncCallNoAwait:
+        "This async function is not `await`ed, so it would run concurrently with the returning Promise of the outer async function. Please add `await`, or disable the rule if needed."
     },
     schema: [],
   },
@@ -44,7 +43,6 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       scopeInfo = {
         upper: scopeInfo,
         hasAsync: node.async,
-        returnsPromise: false,
         noAwaitCalls: [],
       };
     }
@@ -59,24 +57,15 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         return;
       }
 
-      if (node.async) {
-        if (!scopeInfo.returnsPromise) {
-          context.report({
-            node,
-            loc: utils.getFunctionHeadLoc(node, sourceCode),
-            messageId: "unnecessaryAsync",
-          });
-        }
-        if (scopeInfo.noAwaitCalls.length > 0) {
-          context.report({
-            node,
-            loc: utils.getFunctionHeadLoc(node, sourceCode),
-            messageId: "noAwaitBeforeReturnPromise",
-            data: {
-              noAwaitCalls: scopeInfo.noAwaitCalls,
-            },
-          });
-        }
+      if (node.async && scopeInfo.noAwaitCalls.length > 0) {
+        context.report({
+          node,
+          loc: utils.getFunctionHeadLoc(node, sourceCode),
+          messageId: "noAwaitBeforeReturnPromise",
+          data: {
+            noAwaitCalls: scopeInfo.noAwaitCalls,
+          },
+        });
       }
 
       scopeInfo = scopeInfo.upper;
@@ -92,26 +81,21 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     }
 
     /**
-     * Marks the current scope as returns Promise explicitly
-     */
-    function markAsReturnsPromiseExplicitly(): void {
-      if (!scopeInfo) {
-        return;
-      }
-      scopeInfo.returnsPromise = true;
-    }
-
-    /**
      * Add name and line number string to the list that keeps all problematic calls
+     * Report at the location of the async call
      */
-    function addNoAwaitCalls(node: TSESTree.CallExpression): void {
+    function addNoAwaitCalls(callee: TSESTree.Identifier, node: TSESTree.CallExpression): void {
       if (!scopeInfo) {
         return;
       }
-      const callee = node.callee as TSESTree.Identifier;
       scopeInfo.noAwaitCalls.push(
         `${callee.name}(line: ${callee.loc.start.line})`
       );
+      context.report({
+        node,
+        loc: callee.loc,
+        messageId: "asyncCallNoAwait",
+      });
     }
 
     return {
@@ -121,31 +105,6 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       "FunctionDeclaration:exit": exitFunction,
       "FunctionExpression:exit": exitFunction,
       "ArrowFunctionExpression:exit": exitFunction,
-
-      // check body-less async arrow function.
-      // ignore `async () => await foo` because it's obviously correct
-      "ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)"(
-        node: Exclude<
-          TSESTree.Node,
-          TSESTree.BlockStatement | TSESTree.AwaitExpression
-        >
-      ): void {
-        const expression = parserServices.esTreeNodeToTSNodeMap.get(node);
-        if (expression && isThenableType(expression)) {
-          markAsReturnsPromiseExplicitly();
-        }
-      },
-      ReturnStatement(node): void {
-        // short circuit early to avoid unnecessary type checks
-        if (!scopeInfo || !scopeInfo.hasAsync) {
-          return;
-        }
-
-        const { expression } = parserServices.esTreeNodeToTSNodeMap.get(node);
-        if (expression && isThenableType(expression)) {
-          markAsReturnsPromiseExplicitly();
-        }
-      },
       CallExpression(node): void {
         // short circuit early to avoid unnecessary type checks
         if (!scopeInfo || !scopeInfo.hasAsync) {
@@ -153,11 +112,15 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         }
 
         const tsnode = parserServices.esTreeNodeToTSNodeMap.get(node);
-        if (tsnode && isThenableType(tsnode) && node.parent?.type !== 'AwaitExpression') {
-            const callee = node.callee;
-            if (callee.type === "Identifier") {
-              addNoAwaitCalls(node);
-            }
+        if (
+          tsnode &&
+          isThenableType(tsnode) &&
+          node.parent?.type !== "AwaitExpression"
+        ) {
+          const callee = node.callee;
+          if (callee.type === "Identifier") {
+            addNoAwaitCalls(callee, node);
+          }
         }
       },
     };
