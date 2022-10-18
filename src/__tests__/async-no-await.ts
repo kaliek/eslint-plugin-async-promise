@@ -29,6 +29,12 @@ ruleTester.run("async-no-await", rule, {
     async function b() {
       return a();
     };`,
+    `function d() {
+      return Promise.resolve();
+    };
+    async function b() {
+      return d().then(() => {});
+    };`,
   ],
   invalid: [
     {

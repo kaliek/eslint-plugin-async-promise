@@ -105,7 +105,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       "FunctionDeclaration:exit": exitFunction,
       "FunctionExpression:exit": exitFunction,
       "ArrowFunctionExpression:exit": exitFunction,
-      CallExpression(node): void {
+      "BlockStatement > :not(ReturnStatement) CallExpression"(node: TSESTree.CallExpression){
         // short circuit early to avoid unnecessary type checks
         if (!scopeInfo || !scopeInfo.hasAsync) {
           return;
@@ -120,6 +120,9 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         ) {
           const callee = node.callee;
           if (callee.type === "Identifier") {
+            if (callee.name === 'd') {
+              console.log('d', node);
+            }
             addNoAwaitCalls(callee, node);
           }
         }
