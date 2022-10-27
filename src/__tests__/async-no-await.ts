@@ -29,12 +29,27 @@ ruleTester.run("async-no-await", rule, {
     async function b() {
       return a();
     };`,
-    `function d() {
+    `function a() {
       return Promise.resolve();
     };
     async function b() {
-      return d().then(() => {});
+      return a().then(() => {});
     };`,
+    `
+    function a() {
+      return Promise.resolve();
+    }
+    async function b() {
+      const test = await Promise.all([a(), a()]);
+      return test;
+    }
+    `,
+    `
+    function a() {
+      return Promise.resolve();
+    }
+    async () => await a();
+    `
   ],
   invalid: [
     {
