@@ -6,6 +6,7 @@ import * as utils from "../utils";
 interface ScopeInfo {
   upper: ScopeInfo | null;
   hasAsync: boolean;
+  hasAwait: boolean;
   noAwaitCalls: string[];
 }
 type FunctionNode =
@@ -30,7 +31,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     schema: [],
   },
   defaultOptions: [],
-  create(context) {
+  create(context: any) {
     const parserServices = ESLintUtils.getParserServices(context);
     const checker = parserServices.program.getTypeChecker();
     const sourceCode = context.getSourceCode();
@@ -43,6 +44,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       scopeInfo = {
         upper: scopeInfo,
         hasAsync: node.async,
+        hasAwait: false,
         noAwaitCalls: [],
       };
     }
@@ -81,6 +83,16 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     }
 
     /**
+     * Mark the scope as hasAwait, so that CallExpression will early return
+     */
+    function markAsHasAwait(): void {
+      if (!scopeInfo) {
+        return;
+      }
+      scopeInfo.hasAwait = true;
+    }
+    
+    /**
      * Add name and line number string to the list that keeps all problematic calls
      * Report at the location of the async call
      */
@@ -105,24 +117,25 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       "FunctionDeclaration:exit": exitFunction,
       "FunctionExpression:exit": exitFunction,
       "ArrowFunctionExpression:exit": exitFunction,
-      "BlockStatement > :not(ReturnStatement) CallExpression"(node: TSESTree.CallExpression){
+      AwaitExpression: markAsHasAwait,
+      ReturnStatement: markAsHasAwait,
+      'ForOfStatement[await = true]': markAsHasAwait,
+      'ArrowFunctionExpression[async = true] >  AwaitExpression':markAsHasAwait,
+      "BlockStatement CallExpression"(node: TSESTree.CallExpression){
         // short circuit early to avoid unnecessary type checks
         if (!scopeInfo || !scopeInfo.hasAsync) {
           return;
         }
 
+        if (scopeInfo.hasAwait) {
+          return;
+        }
+
         const tsnode = parserServices.esTreeNodeToTSNodeMap.get(node);
         if (
-          tsnode &&
-          isThenableType(tsnode) &&
-          node.parent?.type !== "AwaitExpression" &&
-          node.parent?.type !== "ReturnStatement"
-        ) {
+          tsnode && isThenableType(tsnode)) {
           const callee = node.callee;
           if (callee.type === "Identifier") {
-            if (callee.name === 'd') {
-              console.log('d', node);
-            }
             addNoAwaitCalls(callee, node);
           }
         }
