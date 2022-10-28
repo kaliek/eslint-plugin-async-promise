@@ -5,8 +5,7 @@ import * as utils from "../utils";
 
 interface ScopeInfo {
   upper: ScopeInfo | null;
-  hasAsync: boolean;
-  hasAwait: boolean;
+  hasAsyncCheck: boolean;
   noAwaitCalls: string[];
 }
 type FunctionNode =
@@ -14,6 +13,10 @@ type FunctionNode =
   | TSESTree.FunctionExpression
   | TSESTree.ArrowFunctionExpression;
 
+type ShortCircuitExpression = 
+  | TSESTree.AwaitExpression
+  | TSESTree.ReturnStatement
+  | TSESTree.ForOfStatement 
 const rule = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
     type: "problem",
@@ -43,8 +46,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     function enterFunction(node: FunctionNode): void {
       scopeInfo = {
         upper: scopeInfo,
-        hasAsync: node.async,
-        hasAwait: false,
+        hasAsyncCheck: node.async,
         noAwaitCalls: [],
       };
     }
@@ -74,22 +76,34 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     }
 
     /**
+     * Push the scope info object to the stack, and mark `hasAsyncCheck` as false to escape the check for scoped CallExpression
+     */
+     function enterShortCircuitExpression(node: ShortCircuitExpression): void {
+      scopeInfo = {
+        upper: scopeInfo,
+        hasAsyncCheck: false,
+        noAwaitCalls: [],
+      };
+    }
+
+    /**
+     * Pop the top scope info object from the stack.
+     */
+    function exitShortCircuitExpression(node: ShortCircuitExpression): void {
+      /* istanbul ignore if */ if (!scopeInfo) {
+        // this shouldn't ever happen, as we have to exit a function after we enter it
+        return;
+      }
+      scopeInfo = scopeInfo.upper;
+    }
+
+    /**
      * Checks if the node returns a thenable type
      */
     function isThenableType(node: ts.Node): boolean {
       const type = checker.getTypeAtLocation(node);
 
       return tsutils.isThenableType(checker, node, type);
-    }
-
-    /**
-     * Mark the scope as hasAwait, so that CallExpression will early return
-     */
-    function markAsHasAwait(): void {
-      if (!scopeInfo) {
-        return;
-      }
-      scopeInfo.hasAwait = true;
     }
     
     /**
@@ -117,17 +131,17 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       "FunctionDeclaration:exit": exitFunction,
       "FunctionExpression:exit": exitFunction,
       "ArrowFunctionExpression:exit": exitFunction,
-      AwaitExpression: markAsHasAwait,
-      ReturnStatement: markAsHasAwait,
-      'ForOfStatement[await = true]': markAsHasAwait,
-      'ArrowFunctionExpression[async = true] >  AwaitExpression':markAsHasAwait,
-      "BlockStatement CallExpression"(node: TSESTree.CallExpression){
+      AwaitExpression: enterShortCircuitExpression,
+      "AwaitExpression:exit": exitShortCircuitExpression,
+      ReturnStatement: enterShortCircuitExpression,
+      "ReturnStatement:exit": exitShortCircuitExpression,
+      'ForOfStatement[await = true]': enterShortCircuitExpression,
+      'ForOfStatement[await = true]:exit': exitShortCircuitExpression,
+      'ArrowFunctionExpression[async = true] >  AwaitExpression':enterShortCircuitExpression,
+      'ArrowFunctionExpression[async = true] >  AwaitExpression:exit':exitShortCircuitExpression,
+      "CallExpression"(node: TSESTree.CallExpression){
         // short circuit early to avoid unnecessary type checks
-        if (!scopeInfo || !scopeInfo.hasAsync) {
-          return;
-        }
-
-        if (scopeInfo.hasAwait) {
+        if (!scopeInfo || !scopeInfo.hasAsyncCheck) {
           return;
         }
 
