@@ -113,6 +113,21 @@ ruleTester.run("async-no-await", rule, {
         }
       }`,
       errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
+    },
+    {
+      code: `
+      async function b() {
+        return Promise.resolve();
+      };
+      async function d() {
+        return Promise.resolve();
+      };
+      async function a() {
+        const result = await Promise.all([b(), d()]);
+        b();
+      }
+      `,
+      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
     }
   ],
 });
