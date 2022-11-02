@@ -101,6 +101,15 @@ function b() {
     return Promise.resolve();
 };,
 ```
+```ts
+function a() {
+  return Promise.resolve();
+}
+async function b() {
+  const result = await Promise.all([a()]); // Skip checks async calls in Promise.all, if it's awaited
+  return Promise.resolve();
+}
+```
 
 ### unnecessary-async
 
