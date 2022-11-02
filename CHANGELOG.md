@@ -6,4 +6,4 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- **ast-spec:** Allow `await Promise.all`([3](https://github.com/edsbuildings/eslint-plugin-async-promise/commit/b80475d3d495ba87eb641d166c56b55c9171f4c2))
+- **Promise.all:** Allow `await Promise.all`([3](https://github.com/edsbuildings/eslint-plugin-async-promise/commit/b80475d3d495ba87eb641d166c56b55c9171f4c2))
