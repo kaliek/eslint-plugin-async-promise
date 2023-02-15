@@ -25,6 +25,13 @@ ruleTester.run("unnecessary-async", rule, {
       async function b() {
         return a();
       };`,
+    `const a = {
+        b: () => Promise.resolve(),
+      };
+      async function c() {
+        const result = await a.b();
+        return result;
+      };`,
   ],
   invalid: [
     {
@@ -43,9 +50,7 @@ ruleTester.run("unnecessary-async", rule, {
       async function b() {
         a();
       };`,
-      errors: [
-        { messageId: "unnecessaryAsync" },
-      ],
+      errors: [{ messageId: "unnecessaryAsync" }],
     },
   ],
 });
