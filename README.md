@@ -8,8 +8,6 @@ A typescript-eslint plugin to catch Promise related errors
   - [Rules/async-no-await](#async-no-await)
   - [Rules/unnecessary-async](#unnecessary-async)
 
-
-
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Installation
@@ -46,7 +44,7 @@ Then configure the rules you want to use under the rules section.
 {
   "rules": {
     "async-promise/async-no-await": "error",
-    "async-promise/unnecessary-async": "warn", 
+    "async-promise/unnecessary-async": "warn"
   }
 }
 ```
@@ -64,6 +62,7 @@ While we do not always need to `await` Promise (such as firing side-effects that
 <!--tabs-->
 
 #### ❌ Incorrect
+
 ```ts
 function a() {
   return Promise.resolve();
@@ -73,6 +72,7 @@ async function b() {
   return Promise.resolve();
 }
 ```
+
 ```ts
 function a() {
   return Promise.resolve();
@@ -82,7 +82,9 @@ async function b() {
   return "Not returning a Promise";
 }
 ```
+
 #### ✅ Correct
+
 ```ts
 function a() {
   return Promise.resolve();
@@ -92,6 +94,7 @@ async function b() {
   return Promise.resolve();
 }
 ```
+
 ```ts
 function a() {
     return Promise.resolve();
@@ -101,6 +104,7 @@ function b() {
     return Promise.resolve();
 };,
 ```
+
 ```ts
 function a() {
   return Promise.resolve();
@@ -114,6 +118,7 @@ async function b() {
 ### unnecessary-async
 
 Enforce that `async` keyword is only added when:
+
 1. The function explicitly returns Promise
 2. There is at least 1 `await` statement in the function
 
@@ -122,6 +127,7 @@ Enforce that `async` keyword is only added when:
 <!--tabs-->
 
 #### ❌ Incorrect
+
 ```ts
 function a() {
   return Promise.resolve();
@@ -130,17 +136,21 @@ async function b() {
   a();
 }
 ```
+
 ```ts
 async function b() {
   return "Not returning a Promise explicitly";
 }
 ```
+
 #### ✅ Correct
+
 ```ts
 async function b() {
   return Promise.resolve();
 }
 ```
+
 ```ts
 function a() {
     return Promise.resolve();
@@ -149,6 +159,7 @@ async function b() {
   await a();
 };,
 ```
+
 ```ts
 function a() {
     return Promise.resolve();
@@ -158,3 +169,13 @@ async function b() {
 };,
 ```
 
+```ts
+const a = {
+  b: () => Promise.resolve(),
+};
+async function c() {
+  // Example: MemberExpression : a.b()
+  const result = await a.b();
+  return result;
+}
+```

@@ -18,8 +18,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
     type: "problem",
     docs: {
-      description:
-        "Suggest to remove `async` when not necessary",
+      description: "Suggest to remove `async` when not necessary",
       recommended: "warn",
       requiresTypeChecking: true,
     },
@@ -91,7 +90,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     }
 
     /**
-     * Marks the current scope as has at least 1 await 
+     * Marks the current scope as has at least 1 await
      */
     function markAsHasAwait(): void {
       if (!scopeInfo) {
@@ -144,10 +143,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
           isThenableType(tsnode) &&
           node.parent?.type === "AwaitExpression"
         ) {
-          const callee = node.callee;
-          if (callee.type === "Identifier") {
-            markAsHasAwait();
-          }
+          markAsHasAwait();
         }
       },
     };
