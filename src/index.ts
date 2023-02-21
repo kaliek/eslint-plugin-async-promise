@@ -4,7 +4,7 @@ import unnecessaryAsync from './rules/unnecessary-async';
 const configuration = {
   rules: {
     'async-no-await': asyncNoAwaitRule,
-    'unnecessary-async': unnecessaryAsync
+    'unnecessary-async': unnecessaryAsync,
   },
 };
 

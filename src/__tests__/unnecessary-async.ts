@@ -1,13 +1,13 @@
-import { ESLintUtils } from "@typescript-eslint/utils";
-import rule from "../rules/unnecessary-async";
+import { ESLintUtils } from '@typescript-eslint/utils';
+import rule from '../rules/unnecessary-async';
 const ruleTester = new ESLintUtils.RuleTester({
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: "./tsconfig.json",
+    project: './tsconfig.json',
   },
 });
-ruleTester.run("unnecessary-async", rule, {
+ruleTester.run('unnecessary-async', rule, {
   valid: [
     `
     async function b() {
@@ -40,7 +40,7 @@ ruleTester.run("unnecessary-async", rule, {
         return 'Not returning a Promise explicitly';
       };
       `,
-      errors: [{ messageId: "unnecessaryAsync" }],
+      errors: [{ messageId: 'unnecessaryAsync' }],
     },
     {
       code: `
@@ -50,7 +50,7 @@ ruleTester.run("unnecessary-async", rule, {
       async function b() {
         a();
       };`,
-      errors: [{ messageId: "unnecessaryAsync" }],
+      errors: [{ messageId: 'unnecessaryAsync' }],
     },
   ],
 });
