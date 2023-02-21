@@ -1,7 +1,7 @@
-import { ESLintUtils, TSESTree } from "@typescript-eslint/utils";
-import * as tsutils from "tsutils";
-import type * as ts from "typescript";
-import * as utils from "../utils";
+import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import * as tsutils from 'tsutils';
+import type * as ts from 'typescript';
+import * as utils from '../utils';
 
 interface ScopeInfo {
   upper: ScopeInfo | null;
@@ -16,15 +16,15 @@ type FunctionNode =
 
 const rule = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
-    type: "problem",
+    type: 'problem',
     docs: {
-      description: "Suggest to remove `async` when not necessary",
-      recommended: "warn",
+      description: 'Suggest to remove `async` when not necessary',
+      recommended: 'warn',
       requiresTypeChecking: true,
     },
     messages: {
       unnecessaryAsync:
-        "This function is not explicitly returning Promise or has no `await` statement, do you want to remove `async` keyword?",
+        'This function is not explicitly returning Promise or has no `await` statement, do you want to remove `async` keyword?',
     },
     schema: [],
   },
@@ -62,7 +62,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
           context.report({
             node,
             loc: utils.getFunctionHeadLoc(node, sourceCode),
-            messageId: "unnecessaryAsync",
+            messageId: 'unnecessaryAsync',
           });
         }
       }
@@ -103,13 +103,13 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       FunctionDeclaration: enterFunction,
       FunctionExpression: enterFunction,
       ArrowFunctionExpression: enterFunction,
-      "FunctionDeclaration:exit": exitFunction,
-      "FunctionExpression:exit": exitFunction,
-      "ArrowFunctionExpression:exit": exitFunction,
+      'FunctionDeclaration:exit': exitFunction,
+      'FunctionExpression:exit': exitFunction,
+      'ArrowFunctionExpression:exit': exitFunction,
 
       // check body-less async arrow function.
       // ignore `async () => await foo` because it's obviously correct
-      "ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)"(
+      'ArrowFunctionExpression[async = true] > :not(BlockStatement, AwaitExpression)'(
         node: Exclude<
           TSESTree.Node,
           TSESTree.BlockStatement | TSESTree.AwaitExpression
@@ -141,7 +141,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
         if (
           tsnode &&
           isThenableType(tsnode) &&
-          node.parent?.type === "AwaitExpression"
+          node.parent?.type === 'AwaitExpression'
         ) {
           markAsHasAwait();
         }
