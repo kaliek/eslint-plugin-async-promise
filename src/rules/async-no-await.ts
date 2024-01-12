@@ -13,23 +13,23 @@ type FunctionNode =
   | TSESTree.FunctionExpression
   | TSESTree.ArrowFunctionExpression;
 
-type ShortCircuitExpression = 
+type ShortCircuitExpression =
   | TSESTree.AwaitExpression
   | TSESTree.ReturnStatement
-  | TSESTree.ForOfStatement 
+  | TSESTree.ForOfStatement;
 const rule = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
     type: "problem",
     docs: {
       description: "Check missing await for async calls inside async functions",
-      recommended: "error",
+      recommended: "recommended",
       requiresTypeChecking: true,
     },
     messages: {
       noAwaitBeforeReturnPromise:
         "Inside this async function, these async functions: [{{noAwaitCalls}}] do not have `await`.",
       asyncCallNoAwait:
-        "This async function is not `await`ed, so it would run concurrently with the returning Promise of the outer async function. Please add `await`, or disable the rule if needed."
+        "This async function is not `await`ed, so it would run concurrently with the returning Promise of the outer async function. Please add `await`, or disable the rule if needed.",
     },
     schema: [],
   },
@@ -78,7 +78,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     /**
      * Push the scope info object to the stack, and mark `hasAsyncCheck` as false to escape the check for scoped CallExpression
      */
-     function enterShortCircuitExpression(node: ShortCircuitExpression): void {
+    function enterShortCircuitExpression(node: ShortCircuitExpression): void {
       scopeInfo = {
         upper: scopeInfo,
         hasAsyncCheck: false,
@@ -105,12 +105,15 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
 
       return tsutils.isThenableType(checker, node, type);
     }
-    
+
     /**
      * Add name and line number string to the list that keeps all problematic calls
      * Report at the location of the async call
      */
-    function addNoAwaitCalls(callee: TSESTree.Identifier, node: TSESTree.CallExpression): void {
+    function addNoAwaitCalls(
+      callee: TSESTree.Identifier,
+      node: TSESTree.CallExpression
+    ): void {
       if (!scopeInfo) {
         return;
       }
@@ -135,19 +138,20 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
       "AwaitExpression:exit": exitShortCircuitExpression,
       ReturnStatement: enterShortCircuitExpression,
       "ReturnStatement:exit": exitShortCircuitExpression,
-      'ForOfStatement[await = true]': enterShortCircuitExpression,
-      'ForOfStatement[await = true]:exit': exitShortCircuitExpression,
-      'ArrowFunctionExpression[async = true] >  AwaitExpression':enterShortCircuitExpression,
-      'ArrowFunctionExpression[async = true] >  AwaitExpression:exit':exitShortCircuitExpression,
-      "CallExpression"(node: TSESTree.CallExpression){
+      "ForOfStatement[await = true]": enterShortCircuitExpression,
+      "ForOfStatement[await = true]:exit": exitShortCircuitExpression,
+      "ArrowFunctionExpression[async = true] >  AwaitExpression":
+        enterShortCircuitExpression,
+      "ArrowFunctionExpression[async = true] >  AwaitExpression:exit":
+        exitShortCircuitExpression,
+      CallExpression(node: TSESTree.CallExpression) {
         // short circuit early to avoid unnecessary type checks
         if (!scopeInfo || !scopeInfo.hasAsyncCheck) {
           return;
         }
 
         const tsnode = parserServices.esTreeNodeToTSNodeMap.get(node);
-        if (
-          tsnode && isThenableType(tsnode)) {
+        if (tsnode && isThenableType(tsnode)) {
           const callee = node.callee;
           if (callee.type === "Identifier") {
             addNoAwaitCalls(callee, node);

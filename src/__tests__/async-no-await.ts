@@ -1,12 +1,14 @@
-import { ESLintUtils } from "@typescript-eslint/utils";
+import { RuleTester } from "@typescript-eslint/rule-tester";
 import rule from "../rules/async-no-await";
-const ruleTester = new ESLintUtils.RuleTester({
+
+const ruleTester = new RuleTester({
   parser: "@typescript-eslint/parser",
   parserOptions: {
     tsconfigRootDir: __dirname,
     project: "./tsconfig.json",
   },
 });
+
 ruleTester.run("async-no-await", rule, {
   valid: [
     `function a() {
@@ -49,7 +51,7 @@ ruleTester.run("async-no-await", rule, {
       return Promise.resolve();
     }
     async () => await a();
-    `
+    `,
   ],
   invalid: [
     {
@@ -62,7 +64,10 @@ ruleTester.run("async-no-await", rule, {
         return Promise.resolve();
       };
       `,
-      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
+      errors: [
+        { messageId: "noAwaitBeforeReturnPromise" },
+        { messageId: "asyncCallNoAwait" },
+      ],
     },
     {
       code: `
@@ -73,7 +78,10 @@ ruleTester.run("async-no-await", rule, {
         a();
         return 'Not returning a Promise';
       };`,
-      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
+      errors: [
+        { messageId: "noAwaitBeforeReturnPromise" },
+        { messageId: "asyncCallNoAwait" },
+      ],
     },
     {
       code: `
@@ -84,7 +92,10 @@ ruleTester.run("async-no-await", rule, {
         const result = c();
         return result;
       };`,
-      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
+      errors: [
+        { messageId: "noAwaitBeforeReturnPromise" },
+        { messageId: "asyncCallNoAwait" },
+      ],
     },
     {
       code: `
@@ -96,7 +107,10 @@ ruleTester.run("async-no-await", rule, {
         return Promise.resolve();
       };
       `,
-      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
+      errors: [
+        { messageId: "noAwaitBeforeReturnPromise" },
+        { messageId: "asyncCallNoAwait" },
+      ],
     },
     {
       code: `
@@ -112,7 +126,10 @@ ruleTester.run("async-no-await", rule, {
           b();
         }
       }`,
-      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
+      errors: [
+        { messageId: "noAwaitBeforeReturnPromise" },
+        { messageId: "asyncCallNoAwait" },
+      ],
     },
     {
       code: `
@@ -127,7 +144,10 @@ ruleTester.run("async-no-await", rule, {
         b();
       }
       `,
-      errors: [{ messageId: "noAwaitBeforeReturnPromise" }, { messageId: "asyncCallNoAwait"}],
-    }
+      errors: [
+        { messageId: "noAwaitBeforeReturnPromise" },
+        { messageId: "asyncCallNoAwait" },
+      ],
+    },
   ],
 });
