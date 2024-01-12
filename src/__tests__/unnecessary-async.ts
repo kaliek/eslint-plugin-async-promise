@@ -1,12 +1,14 @@
-import { ESLintUtils } from "@typescript-eslint/utils";
+import { RuleTester } from "@typescript-eslint/rule-tester";
 import rule from "../rules/unnecessary-async";
-const ruleTester = new ESLintUtils.RuleTester({
+
+const ruleTester = new RuleTester({
   parser: "@typescript-eslint/parser",
   parserOptions: {
     tsconfigRootDir: __dirname,
     project: "./tsconfig.json",
   },
 });
+
 ruleTester.run("unnecessary-async", rule, {
   valid: [
     `

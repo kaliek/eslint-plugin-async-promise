@@ -19,7 +19,7 @@ const rule = ESLintUtils.RuleCreator.withoutDocs({
     type: "problem",
     docs: {
       description: "Suggest to remove `async` when not necessary",
-      recommended: "warn",
+      recommended: "recommended",
       requiresTypeChecking: true,
     },
     messages: {
